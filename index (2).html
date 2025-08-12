@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Nitinbestplaylist — Glow-up Edition</title>
+<meta name="description" content="Nitinbestplaylist — Spotify-style YouTube playlist with animated background, glassmorphism, and neon glow effects." />
+<style>
+:root {
+  --bg: #070707;
+  --accent: #1db954;
+  --muted: #b3b3b3;
+  --ui-pad: 14px;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
+  background: linear-gradient(270deg, #0a0a0a, #121212, #0d0d0d);
+  background-size: 600% 600%;
+  animation: bgShift 15s ease infinite;
+  color:#fff;
+  min-height:100vh;
+}
+@keyframes bgShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.overlay{
+  position:fixed;inset:0;z-index:200;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(0,0,0,0.96), rgba(0,0,0,0.75));
+  backdrop-filter: blur(8px);
+  transition:opacity .45s ease, visibility .45s;
+}
+.overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
+.neon {
+  font-weight:900;
+  font-size:clamp(32px,9vw,84px);
+  text-align:center;
+  background:linear-gradient(90deg,var(--accent),#6ee7f7,#c084fc);
+  background-size:300% 300%;
+  -webkit-background-clip:text; background-clip:text;
+  color:transparent;
+  filter: drop-shadow(0 0 20px rgba(29,185,84,0.5));
+  animation:neonShift 6s linear infinite, pulseGlow 2s ease-in-out infinite;
+}
+@keyframes neonShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes pulseGlow {
+  0%,100% { filter: drop-shadow(0 0 20px rgba(29,185,84,0.5)); }
+  50% { filter: drop-shadow(0 0 35px rgba(29,185,84,0.9)); }
+}
+.start-btn{
+  margin-top:18px;
+  padding:12px 22px;
+  border-radius:999px;
+  border:none;
+  background:var(--accent);
+  color:#001;
+  font-weight:700;
+  cursor:pointer;
+  box-shadow:0 0 20px rgba(29,185,84,0.4);
+}
+.app { max-width:1100px; margin:0 auto; padding:calc(var(--ui-pad)*1.5); padding-bottom:120px; }
+header.app-header{
+  text-align:center;
+  margin-bottom:12px;
+  font-size:20px;
+  font-weight:800;
+  background:linear-gradient(90deg,var(--accent),#6ee7f7,#c084fc);
+  -webkit-background-clip:text;
+  color:transparent;
+  padding-top:8px;
+  padding-bottom:8px;
+}
+.player-area{
+  position:relative;
+  width:100%;
+  margin:0 auto 18px;
+  background:rgba(255,255,255,0.05);
+  border-radius:16px;
+  padding:8px;
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+}
+.player-frame{ width:100%; height:230px; border-radius:12px; overflow:hidden; background:#000; }
+.unmute-overlay{
+  position:absolute; left:0; right:0; top:0; bottom:0;
+  display:none; align-items:center; justify-content:center;
+  background:linear-gradient(rgba(0,0,0,0.48), rgba(0,0,0,0.48));
+  color:#fff;
+  font-size:18px;
+  z-index:30;
+  cursor:pointer;
+}
+.playlist { margin-top:12px; display:flex; flex-direction:column; gap:8px; }
+.song {
+  display:flex; align-items:center; gap:12px;
+  padding:10px; border-radius:12px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(8px);
+}
+.song img { width:68px; height:68px; border-radius:8px; flex:0 0 68px; object-fit:cover; }
+.song .meta { flex:1; min-width:0; }
+.song .title { font-weight:700; font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.song .sub { color:var(--muted); font-size:13px; margin-top:4px; }
+.song button {
+  background:var(--accent); color:#001;
+  border:none; padding:8px 12px;
+  border-radius:8px; cursor:pointer;
+  flex:0 0 auto;
+}
+footer.site-footer{
+  position:fixed; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.6);
+  backdrop-filter:blur(6px);
+  color:#ddd; text-align:center;
+  padding:10px 12px;
+  border-top:1px solid rgba(255,255,255,0.03);
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+<div class="overlay" id="overlay">
+  <div class="neon">Nitinbestplaylist</div>
+  <button class="start-btn" id="enterBtn">Enter Playlist</button>
+</div>
+<div class="app" id="app" aria-hidden="true">
+  <header class="app-header">Nitinbestplaylist</header>
+  <div class="player-area" id="playerArea" style="display:none">
+    <div class="player-frame" id="playerFrame">
+      <div id="yt-player-placeholder" style="width:100%;height:100%;"></div>
+    </div>
+    <div class="unmute-overlay" id="unmuteOverlay">Tap to unmute 🔊</div>
+  </div>
+  <div class="playlist" id="playlist"></div>
+</div>
+<footer class="site-footer">
+  © <span id="year"></span> Nitinbestplaylist. All rights reserved.
+</footer>
+<script>
+const songs = [
+  {title: "Your Song (provided)", id: "4X4uckVyk9o", sub: "Your track"},
+  {title: "Provenza", id: "ca48oMV59LU", sub: "Karol G"},
+  {title: "Tusa (with Nicki Minaj)", id: "JR3fPzG5MCM", sub: "Karol G, Nicki Minaj"},
+  {title: "Bichota", id: "YyH6kKJLTzc", sub: "Karol G"},
+  {title: "Mi Ex Tenía Razón", id: "47DFg4k5H1M", sub: "Karol G"}
+];
+const overlay = document.getElementById('overlay');
+const enterBtn = document.getElementById('enterBtn');
+const app = document.getElementById('app');
+const playerArea = document.getElementById('playerArea');
+const ytPlaceholder = document.getElementById('yt-player-placeholder');
+const playlistEl = document.getElementById('playlist');
+const unmuteOverlay = document.getElementById('unmuteOverlay');
+const yearEl = document.getElementById('year');
+let YTapiReady = false;
+let player = null;
+let currentIndex = null;
+let playlistLength = songs.length;
+function renderPlaylist(){
+  playlistEl.innerHTML = '';
+  songs.forEach((s, i) => {
+    const row = document.createElement('div');
+    row.className = 'song';
+    row.dataset.index = i;
+    const thumb = `https://img.youtube.com/vi/${s.id}/hqdefault.jpg`;
+    row.innerHTML = `
+      <img src="${thumb}" alt="${s.title}">
+      <div class="meta">
+        <div class="title">${i+1}. ${s.title}</div>
+        <div class="sub">${s.sub}</div>
+      </div>
+      <button class="playBtn">Play</button>`;
+    row.querySelector('.playBtn').addEventListener('click', (ev)=> {
+      ev.stopPropagation();
+      playerArea.style.display = 'block';
+      playSong(i);
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+    playlistEl.appendChild(row);
+  });
+}
+function loadYouTubeAPI(){
+  return new Promise(resolve=>{
+    if(window.YT && YT.Player){ YTapiReady = true; resolve(YT); return; }
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+    window.onYouTubeIframeAPIReady = function(){
+      YTapiReady = true;
+      resolve(window.YT);
+    };
+  });
+}
+function createPlayer(){
+  if(player) return;
+  player = new YT.Player(ytPlaceholder, {
+    height: '230',
+    width: '100%',
+    videoId: '',
+    playerVars: { autoplay: 0, controls: 1, rel: 0, modestbranding: 1 },
+    events: { onStateChange: onPlayerStateChange }
+  });
+}
+function onPlayerStateChange(e){
+  if(e.data === YT.PlayerState.ENDED){
+    playNext();
+  }
+}
+async function playSong(index){
+  currentIndex = index;
+  if(!YTapiReady){ await loadYouTubeAPI(); }
+  if(!player) createPlayer();
+  const id = songs[index].id;
+  try{
+    player.loadVideoById({videoId: id, startSeconds: 0});
+    player.mute();
+    player.playVideo();
+    unmuteOverlay.style.display = 'flex';
+  }catch(err){
+    ytPlaceholder.innerHTML = `<iframe width="100%" height="230" src="https://www.youtube.com/embed/${id}?autoplay=1&mute=1&rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    unmuteOverlay.style.display = 'flex';
+  }
+}
+function unmutePlayer(){ if(player && player.unMute) player.unMute(); unmuteOverlay.style.display = 'none'; }
+function playNext(){
+  const next = (currentIndex === null) ? 0 : (currentIndex + 1);
+  if(next < playlistLength){ playSong(next); window.scrollTo({top:0, behavior:'smooth'}); }
+}
+enterBtn.addEventListener('click', ()=>{
+  overlay.classList.add('hidden');
+  app.removeAttribute('aria-hidden');
+  renderPlaylist();
+  loadYouTubeAPI().then(()=>createPlayer()).catch(()=>{});
+});
+unmuteOverlay.addEventListener('click', unmutePlayer);
+yearEl.textContent = new Date().getFullYear();
+app.setAttribute('aria-hidden','true');
+</script>
+</body>
+</html>

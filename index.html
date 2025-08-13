@@ -14,6 +14,7 @@
 }
 *{box-sizing:border-box}
 body{
+  
   margin:0;
   font-family: Inter, system-ui, -apple-system, "Helvetica Neue", Arial;
   background: linear-gradient(270deg, #0a0a0a, #121212, #0d0d0d);
@@ -143,11 +144,26 @@ footer.site-footer{
 </footer>
 <script>
 const songs = [
-  {title: "Your Song (provided)", id: "4X4uckVyk9o", sub: "Your track"},
-  {title: "Provenza", id: "ca48oMV59LU", sub: "Karol G"},
-  {title: "Tusa (with Nicki Minaj)", id: "JR3fPzG5MCM", sub: "Karol G, Nicki Minaj"},
-  {title: "Bichota", id: "YyH6kKJLTzc", sub: "Karol G"},
-  {title: "Mi Ex Tenía Razón", id: "47DFg4k5H1M", sub: "Karol G"}
+  {title: "Shape of You", id: "JGwWNGJdvx8", sub: "Ed Sheeran"},
+  {title: "Blinding Lights", id: "fHI8X4OXluQ", sub: "The Weeknd"},
+  {title: "Levitating", id: "TUVcZfQe-Kw", sub: "Dua Lipa"},
+  {title: "Peaches", id: "tQ0yjYUFKAE", sub: "Justin Bieber"},
+  {title: "Watermelon Sugar", id: "E07s5ZYygMg", sub: "Harry Styles"},
+  {title: "Bad Guy", id: "DyDfgMOUjCI", sub: "Billie Eilish"},
+  {title: "Señorita", id: "Pkh8UtuejGw", sub: "Shawn Mendes & Camila Cabello"},
+  {title: "Dance Monkey", id: "q0hyYWKXF0Q", sub: "Tones and I"},
+  {title: "Stay", id: "kTJczUoc26U", sub: "The Kid LAROI & Justin Bieber"},
+  {title: "Perfect", id: "2Vv-BfVoq4g", sub: "Ed Sheeran"},
+  {title: "Industry Baby", id: "UTHLKHL_whs", sub: "Lil Nas X, Jack Harlow"},
+  {title: "Havana", id: "HCjNJDNzw8Y", sub: "Camila Cabello"},
+  {title: "Believer", id: "7wtfhZwyrcc", sub: "Imagine Dragons"},
+  {title: "Faded", id: "60ItHLz5WEA", sub: "Alan Walker"},
+  {title: "Let Me Love You", id: "SMs0GnYze34", sub: "DJ Snake ft. Justin Bieber"},
+  {title: "Closer", id: "PT2_F-1esPk", sub: "The Chainsmokers"},
+  {title: "Love Nwantiti", id: "0gL5jX6SMwU", sub: "CKay"},
+  {title: "Someone You Loved", id: "zABLecsR5UE", sub: "Lewis Capaldi"},
+  {title: "Memories", id: "SlPhMPnQ58k", sub: "Maroon 5"},
+  {title: "Cheap Thrills", id: "nYh-n7EOtMA", sub: "Sia"}
 ];
 const overlay = document.getElementById('overlay');
 const enterBtn = document.getElementById('enterBtn');
@@ -228,8 +244,10 @@ async function playSong(index){
 }
 function unmutePlayer(){ if(player && player.unMute) player.unMute(); unmuteOverlay.style.display = 'none'; }
 function playNext(){
-  const next = (currentIndex === null) ? 0 : (currentIndex + 1);
-  if(next < playlistLength){ playSong(next); window.scrollTo({top:0, behavior:'smooth'}); }
+  let next = (currentIndex === null) ? 0 : (currentIndex + 1);
+  if(next >= playlistLength) next = 0; // Loop back to start
+  playSong(next);
+  window.scrollTo({top:0, behavior:'smooth'});
 }
 enterBtn.addEventListener('click', ()=>{
   overlay.classList.add('hidden');
